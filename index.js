@@ -6,12 +6,12 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const port=process.env.PORT || 5000;
 
 
-// middleware
+// middleware 
 app.use(express.json())
 app.use(cors())
 // basic get method
 app.get('/',(req,res)=>{
-  res.send('Banao Server is Running')
+  res.send('Kurenai Server is Running')
 })
 app.listen(port,()=>{
   console.log(`Server Port is : ${port}`)
@@ -35,6 +35,57 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
 
+    const usersCollection=client.db("kurenai-db").collection("users")
+
+//post method for register
+app.post('/post_user', async (req, res) => {
+  const user = req.body;
+
+  // Transform email to lowercase before querying
+  user.email = user.email.toLowerCase();
+
+  const query = {
+    $and: [
+      { username: user.username },
+      { email: user.email }
+    ]
+  };
+
+  try {
+    const existingUser = await usersCollection.findOne(query);
+
+    if (existingUser) {
+      return res.send({ message: 'User already exists' });
+    }
+
+    const result = await usersCollection.insertOne(user);
+    res.send(result);
+  } catch (error) {
+    if (error.code === 11000) {
+      // Duplicate username error
+      return res.send({ message: 'Username is already taken' });
+    }
+    // Handle other errors as needed
+    console.error(error);
+    res.status(500).send({ message: 'An error occurred' });
+  }
+});
+
+//get method for login
+app.get('/get_user/:username/:password', async (req, res) => {
+  const username = req.params.username;
+  const password = req.params.password;
+  const filter = { username: username, password: password }; 
+
+ 
+  const result = await usersCollection.findOne(filter);
+
+  if (result) {
+    res.send({ message: 'User found', user: result });
+  } else {
+    res.send({ message: 'User not found' });
+  }
+});
 
 
 
@@ -44,9 +95,6 @@ async function run() {
 
 
 
-
-
-    
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
