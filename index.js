@@ -34,8 +34,10 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
-
+    //user db
     const usersCollection=client.db("kurenai-db").collection("users")
+    //blog db
+    const blogsCollection=client.db("kurenai-db").collection("blogs")
 
 //post method for register
 app.post('/post_user', async (req, res) => {
@@ -88,9 +90,20 @@ app.get('/get_user/:username/:password', async (req, res) => {
 });
 
 
+//post method for blog
 
+app.post('/post_blog', async (req, res) => {
+  const blog = req.body;
+  const result = await blogsCollection.insertOne(blog);
+  res.send(result);
+ 
+});
 
-
+// get method for blog
+app.get('/get_blog', async(req,res)=>{
+  const result=await blogsCollection.find().toArray();
+  res.send(result)
+})
 
 
 
