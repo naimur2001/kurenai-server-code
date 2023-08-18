@@ -88,7 +88,11 @@ app.get('/get_user/:username/:password', async (req, res) => {
     res.send({ message: 'User not found' });
   }
 });
-
+// get method for blog
+app.get('/get_user', async(req,res)=>{
+  const result=await usersCollection.find().toArray();
+  res.send(result)
+})
 
 //post method for blog
 
